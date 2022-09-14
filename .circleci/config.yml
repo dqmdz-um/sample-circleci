@@ -21,5 +21,5 @@ jobs:
       - run:
           name: Update CodeClimate coverage report
           command: |
-              ./cc-test-reporter after-build -r 23afc1c419d9a521469746a6dd5338547311b27c0a63dfdfed090a9a21c1c37c
+              ./cc-test-reporter after-build
 
