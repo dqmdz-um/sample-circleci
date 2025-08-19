@@ -19,7 +19,12 @@ jobs:
           name: Running Tests and Generating Coverage Report
           command: coverage run -m unittest && coverage xml
       - run:
+          name: "Debug: List files"
+          command: ls -la
+          when: always
+      - run:
           name: Update CodeClimate coverage report
           command: |
             ./cc-test-reporter format-coverage -t cobertura coverage.xml
             ./cc-test-reporter upload-coverage
+          when: always
