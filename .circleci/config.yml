@@ -1,43 +1,25 @@
 version: 2.1
-
-# 1. Declara el Orb de Code Climate
-orbs:
-  codeclimate: codeclimate/codeclimate@1.0.1
-
 jobs:
   build:
     docker:
-      - image: cimg/python:3.10.1 # Tu imagen de Docker es correcta
+      - image: cimg/python:3.10.1
     steps:
       - checkout
-
-      # 2. Instala el binario de forma automática
-      - codeclimate/install
-
       - run:
-          name: Instalar dependencias
-          command: pip install -r requirements.txt
-      
-      # 3. Notifica a Quality que el build comienza
-      - run:
-          name: Setup Quality Reporter
-          command: cc-test-reporter before-build
-
-      # 4. Ejecuta las pruebas y genera el reporte XML
-      - run:
-          name: Ejecutar pruebas y generar cobertura
+          name: Setup Code Climate test-reporter
           command: |
-            coverage run -m unittest
-            coverage xml -o coverage.xml # Genera el archivo coverage.xml
-
-      # 5. Sube el reporte de cobertura (¡Paso clave corregido!)
-      #    - Se ejecuta siempre para reportar también los fallos.
-      #    - Le dice a Quality dónde está y qué tipo de archivo es.
+              curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+              chmod +x ./cc-test-reporter
+              ./cc-test-reporter before-build
       - run:
-          name: Subir reporte a Quality
-          command: cc-test-reporter after-build --exit-code $? --coverage-input-type cobertura coverage.xml
+          name: Install dependencies
+          command: pip install -r requirements.txt
+      - run:
+          # Combina la ejecución y la generación del XML en un solo paso
+          name: Running Tests and Generating Coverage Report
+          command: coverage run -m unittest && coverage xml
+      - run:
+          # Este es el comando corregido
+          name: Update CodeClimate coverage report
+          command: ./cc-test-reporter after-build --exit-code $? --coverage-input-type cobertura coverage.xml
           when: always
-workflows:
-  build-workflow:
-    jobs:
-      - build
