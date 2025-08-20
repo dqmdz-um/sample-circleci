@@ -1,4 +1,6 @@
 version: 2.1
+orbs:
+  sonarcloud: sonarsource/sonarcloud@2.0.0
 jobs:
   build:
     docker:
@@ -9,5 +11,8 @@ jobs:
           name: Install dependencies
           command: pip install -r requirements.txt
       - run:
-          name: Run tests
-          command: python -m unittest
+          name: Running Tests and Generating Coverage Report
+          command: coverage run -m unittest && coverage xml
+      - sonarcloud/scan:
+          project_key: dqmdz-um_sample-circleci
+          organization: dqmdz-um
