@@ -12,12 +12,15 @@ jobs:
           command: pip install -r requirements.txt
       - run:
           name: Running Tests and Generating Coverage Report
-          command: coverage run -m unittest && coverage xml
+          command: coverage run -m unittest && coverage report -m && coverage xml
       - run:
           name: Create sonar-project.properties
           command: |
             echo "sonar.organization=${SONAR_ORGANIZATION}" > sonar-project.properties
             echo "sonar.projectKey=${SONAR_PROJECT_KEY}" >> sonar-project.properties
+            echo "sonar.python.coverage.reportPaths=coverage.xml" >> sonar-project.properties
+            echo "sonar.sources=main.py" >> sonar-project.properties
+            echo "sonar.tests=test.py" >> sonar-project.properties
       - sonarcloud/scan
 
 workflows:
