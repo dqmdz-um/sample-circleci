@@ -6,25 +6,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Setup Code Climate test-reporter
-          command: |
-              curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-              chmod +x ./cc-test-reporter
-              ./cc-test-reporter before-build
-      - run:
           name: Install dependencies
           command: pip install -r requirements.txt
       - run:
-          # Combina la ejecución y la generación del XML en un solo paso
-          name: Running Tests and Generating Coverage Report
-          command: coverage run -m unittest && coverage xml
-      - run:
-          name: "Debug: List files"
-          command: ls -la
-          when: always
-      - run:
-          name: Update CodeClimate coverage report
-          command: |
-            ./cc-test-reporter format-coverage -t cobertura coverage.xml
-            ./cc-test-reporter upload-coverage
-          when: always
+          name: Run tests
+          command: python -m unittest
