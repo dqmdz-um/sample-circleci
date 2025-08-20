@@ -16,3 +16,8 @@ jobs:
       - sonarcloud/scan:
           project_key: dqmdz-um_sample-circleci
           organization: dqmdz-um
+
+workflows:
+  main:
+    jobs:
+      - build
