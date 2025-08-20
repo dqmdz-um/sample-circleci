@@ -13,9 +13,7 @@ jobs:
       - run:
           name: Running Tests and Generating Coverage Report
           command: coverage run -m unittest && coverage xml
-      - sonarcloud/scan:
-          project_key: dqmdz-um_sample-circleci
-          organization: dqmdz-um
+      - sonarcloud/scan
 
 workflows:
   main:
