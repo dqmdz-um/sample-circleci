@@ -48,21 +48,31 @@ jobs:
 
       - name: Update README with coverage report
         run: |
-          START_COMMENT="<!-- COVERAGE_START -->"
-          END_COMMENT="<!-- COVERAGE_END -->"
-          REPORT_FILE="coverage_report.txt"
-          README_FILE="README.md"
+          cat << 'EOF' > update_readme.py
+          import re
 
-          # Create the content to be inserted, including a title and code block
-          COVERAGE_CONTENT="## Coverage Report\n\n```\n$(cat $REPORT_FILE)\n```"
+          with open("coverage_report.txt", "r") as f:
+              report = f.read()
 
-          # Use a temporary file for sed to handle multiline replacement
-          tmp=$(mktemp)
-          awk -v start="$START_COMMENT" -v end="$END_COMMENT" -v content="$COVERAGE_CONTENT" ' 
-            $0 == start { print; print content; inside=1 }
-            $0 == end { inside=0 }
-            !inside { print } 
-          ' "$README_FILE" > "$tmp" && mv "$tmp" "$README_FILE"
+          with open("README.md", "r") as f:
+              readme = f.read()
+
+          if not report.endswith('\n'):
+              report += '\n'
+
+          new_content = f"## Coverage Report\n\n```text\n{report}```"
+
+          new_readme = re.sub(
+              r"(<!-- COVERAGE_START -->)(.*)(<!-- COVERAGE_END -->)",
+              f"\1\n{new_content}\n\3",
+              readme,
+              flags=re.DOTALL,
+          )
+
+          with open("README.md", "w") as f:
+              f.write(new_readme)
+          EOF
+          python update_readme.py
 
       - name: Commit and push README changes
         if: github.ref == 'refs/heads/main' # Only run on main branch
