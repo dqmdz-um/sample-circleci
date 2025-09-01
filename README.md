@@ -4,6 +4,15 @@
 
 A sample project for CircleCI.
 
-<!-- COVERAGE_START -->
-<!-- COVERAGE_END -->
+
+## Coverage Report
+
+```text
+Name      Stmts   Miss  Cover   Missing
+---------------------------------------
+main.py       7      2    71%   8-9
+---------------------------------------
+TOTAL         7      2    71%
+```
+
 
