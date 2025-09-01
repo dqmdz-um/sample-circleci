@@ -1,0 +1,14 @@
+[DESIGN]
+# Maximum number of arguments for functions/methods.
+max-args=5
+
+# Maximum number of lines in a function/method.
+max-lines=100
+
+[REPORTS]
+# Disable the generation of reports.
+reports=no
+
+[MESSAGES CONTROL]
+# Only show errors and warnings.
+disable=C,R,I

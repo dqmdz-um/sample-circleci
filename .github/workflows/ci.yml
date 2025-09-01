@@ -46,31 +46,59 @@ jobs:
             -Dsonar.python.coverage.reportPaths=cobertura.xml
             -Dsonar.sources=.
 
-      - name: Update README with coverage report
+      - name: Run Pylint and generate report
+        run: |
+          pylint --rcfile=.pylintrc main.py test.py > pylint_report.txt || true
+
+      - name: Update README with coverage and pylint reports
+        id: update_readme
         run: |
           cat << 'EOF' > update_readme.py
           import re
+          import os
 
-          with open("coverage_report.txt", "r") as f:
-              report = f.read()
+          # Function to read file content
+          def read_file(filepath):
+              if not os.path.exists(filepath):
+                  return ""
+              with open(filepath, "r") as f:
+                  return f.read()
 
-          with open("README.md", "r") as f:
-              readme = f.read()
+          # Function to update a section in the README
+          def update_section(readme_content, section_name, report_content):
+              start_marker = f"<!-- {section_name}_START -->"
+              end_marker = f"<!-- {section_name}_END -->"
+              
+              if not report_content.strip():
+                  report_content = "No issues found."
 
-          if not report.endswith('\n'):
-              report += '\n'
+              if not report_content.endswith('\n'):
+                  report_content += '\n'
+              
+              title = section_name.replace('_', ' ').title()
+              new_section_content = f"## {title}\n\n```text\n{report_content}```"
+              
+              return re.sub(
+                  f"({start_marker})(.*)({end_marker})",
+                  f"\1\n{new_section_content}\n\3",
+                  readme_content,
+                  flags=re.DOTALL,
+              )
 
-          new_content = f"## Coverage Report\n\n```text\n{report}```"
+          # Read reports
+          coverage_report = read_file("coverage_report.txt")
+          pylint_report = read_file("pylint_report.txt")
 
-          new_readme = re.sub(
-              r"(<!-- COVERAGE_START -->)(.*)(<!-- COVERAGE_END -->)",
-              f"\1\n{new_content}\n\3",
-              readme,
-              flags=re.DOTALL,
-          )
+          # Read README
+          readme = read_file("README.md")
 
+          # Update sections
+          readme = update_section(readme, "COVERAGE", coverage_report)
+          readme = update_section(readme, "PYLINT", pylint_report)
+
+          # Write updated README
           with open("README.md", "w") as f:
-              f.write(new_readme)
+              f.write(readme)
           EOF
           python update_readme.py
 

@@ -16,3 +16,6 @@ TOTAL         7      2    71%
 ```
 
 
+<!-- PYLINT_START -->
+<!-- PYLINT_END -->
+
