@@ -1,4 +1,4 @@
-name: CI with Coverage Badge and SonarCloud
+name: CI with Coverage and SonarCloud
 
 on:
   push:
@@ -13,52 +13,67 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Clona el código del repositorio
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2. Configura el entorno de Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # 3. Instala las dependencias del proyecto (CAMBIO: Usamos pip)
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 4. Ejecuta los tests y genera el reporte de coverage (CAMBIO: Usamos unittest)
       - name: Run tests and generate coverage report
         run: |
           coverage run -m unittest discover
           coverage xml -o cobertura.xml
           coverage report -m > coverage_report.txt
 
-      # 5. Genera el badge de coverage (sin cambios en este paso)
-      - name: Generate Coverage Badge
-        id: coverage
-        uses: schneegans/dynamic-badges-action@v1.7.0
-        with:
-          auth: ${{ secrets.GIST_SECRET_FOR_BADGE }}
-          gistID: 58551e70b2c394554d1ec67c295c1b8b
-          label: Coverage
-          filename: coverage.json
-          query: '$..total.percent_covered_display'
-          valuta: '%'
-          file: coverage_report.txt
-
-      # 6. Ejecuta el análisis de SonarCloud (sin cambios en este paso)
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          # AÑADE ESTA SECCIÓN
           args: >
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECTKEY }}
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=dqmdz-um_sample-circleci
+            -Dsonar.organization=dqmdz-um
+            -Dsonar.python.coverage.reportPaths=cobertura.xml
+            -Dsonar.sources=.
+
+      - name: Update README with coverage report
+        run: |
+          START_COMMENT="<!-- COVERAGE_START -->"
+          END_COMMENT="<!-- COVERAGE_END -->"
+          REPORT_FILE="coverage_report.txt"
+          README_FILE="README.md"
+
+          # Create the content to be inserted, including a title and code block
+          COVERAGE_CONTENT="## Coverage Report\n\n```\n$(cat $REPORT_FILE)\n```"
+
+          # Use a temporary file for sed to handle multiline replacement
+          tmp=$(mktemp)
+          awk -v start="$START_COMMENT" -v end="$END_COMMENT" -v content="$COVERAGE_CONTENT" ' 
+            $0 == start { print; print content; inside=1 }
+            $0 == end { inside=0 }
+            !inside { print } 
+          ' "$README_FILE" > "$tmp" && mv "$tmp" "$README_FILE"
+
+      - name: Commit and push README changes
+        if: github.ref == 'refs/heads/main' # Only run on main branch
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add README.md
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit to README.md"
+          else
+            git commit -m "docs: Update coverage report in README [skip ci]"
+            git push
+          fi
