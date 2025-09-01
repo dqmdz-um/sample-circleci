@@ -6,7 +6,7 @@ numpy
 matplotlib
 seaborn
 scipy
-sklearn
+scikit-learn
 statsmodels
 lxml
 beautifulsoup4
