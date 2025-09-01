@@ -2,8 +2,8 @@
 # Maximum number of arguments for functions/methods.
 max-args=5
 
-# Maximum number of lines in a function/method.
-max-lines=100
+# Maximum number of statements in a function/method.
+max-statements=50
 
 [REPORTS]
 # Disable the generation of reports.
