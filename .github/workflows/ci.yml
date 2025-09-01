@@ -1,0 +1,59 @@
+name: CI with Coverage Badge and SonarCloud
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Clona el código del repositorio
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. Configura el entorno de Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # 3. Instala las dependencias del proyecto (CAMBIO: Usamos pip)
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 4. Ejecuta los tests y genera el reporte de coverage (CAMBIO: Usamos unittest)
+      - name: Run tests and generate coverage report
+        run: |
+          coverage run -m unittest discover
+          coverage xml -o cobertura.xml
+          coverage report -m > coverage_report.txt
+
+      # 5. Genera el badge de coverage (sin cambios en este paso)
+      - name: Generate Coverage Badge
+        id: coverage
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET_FOR_BADGE }}
+          gistID: 58551e70b2c394554d1ec67c295c1b8b
+          label: Coverage
+          filename: coverage.json
+          query: '$..total.percent_covered_display'
+          valuta: '%'
+          file: coverage_report.txt
+
+      # 6. Ejecuta el análisis de SonarCloud (sin cambios en este paso)
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
