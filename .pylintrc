@@ -9,6 +9,4 @@ max-statements=50
 # Disable the generation of reports.
 reports=no
 
-[MESSAGES CONTROL]
-# Only show errors and warnings.
-disable=C,R,I
+
